@@ -1,57 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Fancy Font Fiesta – FIX FULL PRO</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Fancy Font Fiesta PRO – Ultra Stable</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
 
-<script>
-tailwind.config = {
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        primary: '#6366f1',
-        secondary: '#0ea5e9'
+    <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            secondary: '#0ea5e9'
+          }
+        }
       }
     }
-  }
-}
-</script>
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+        .style-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
 </head>
 
-<body class="bg-gradient-to-br from-primary to-secondary min-h-screen p-5">
-<div class="max-w-md mx-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-2xl shadow-xl overflow-hidden">
+<body class="bg-slate-100 dark:bg-gray-950 min-h-screen p-4 sm:p-8">
+<div class="max-w-xl mx-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
 
-<div class="p-5 space-y-4">
+<div class="p-6 space-y-6">
   <div class="flex justify-between items-center">
-    <h1 class="text-xl font-bold flex items-center gap-2">
-      <i data-feather="type"></i> Fancy Font Fiesta PRO
+    <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
+      <span class="bg-primary p-1.5 rounded-lg text-white">
+        <i data-feather="type" class="w-6 h-6"></i>
+      </span>
+      FONT FIESTA <span class="text-primary">PRO</span>
     </h1>
-    <button id="toggleDark" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">🌙</button>
+    <button id="toggleDark" class="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:scale-110 transition active:scale-95">🌙</button>
   </div>
 
-  <textarea id="input" rows="3"
-    class="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-800 focus:ring-2 focus:ring-primary outline-none"
-    placeholder="Type your text here..."></textarea>
+  <div class="space-y-3">
+    <label class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Input Teks</label>
+    <textarea id="input" rows="3"
+      class="w-full p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 focus:ring-4 focus:ring-primary/20 border border-gray-200 dark:border-gray-700 outline-none text-lg transition resize-none"
+      placeholder="Ketik sesuatu yang keren..."></textarea>
+  </div>
 
-  <input id="search" placeholder="🔍 Search style..."
-    class="w-full p-2 rounded bg-gray-100 dark:bg-gray-800 outline-none">
+  <div class="relative">
+    <input id="search" placeholder="Cari gaya (Bold, Mono, Script...)"
+      class="w-full p-3 pl-11 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 outline-none focus:border-primary transition">
+    <i data-feather="search" class="absolute left-4 top-3.5 w-4 h-4 text-gray-400"></i>
+  </div>
 
   <button id="copyAll"
-    class="w-full bg-primary text-white p-2 rounded-lg hover:opacity-90 transition">
-    📋 Copy All Styles
+    class="w-full bg-primary hover:bg-indigo-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 active:scale-[0.98]">
+    <i data-feather="copy" class="w-5 h-5"></i> Salin Semua Hasil
   </button>
 
-  <div id="result" class="space-y-2 max-h-96 overflow-y-auto"></div>
+  <div id="result" class="space-y-3 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+      </div>
+</div>
+
+<div class="bg-gray-50 dark:bg-gray-800/50 p-4 text-center text-xs text-gray-400 font-medium">
+    Tip: Klik pada kotak gaya untuk menyalin satu per satu.
 </div>
 
 </div>
 
 <script>
+// Inisialisasi Icon
 feather.replace();
 
 const input = document.getElementById("input");
@@ -60,75 +82,144 @@ const search = document.getElementById("search");
 const copyAll = document.getElementById("copyAll");
 const toggleDark = document.getElementById("toggleDark");
 
-// SAFE base fonts (no combining chars)
+/**
+ * LOGIKA TRANSFORMASI UNICODE
+ * Menggunakan Code Points untuk stabilitas render di berbagai browser
+ */
+const getUnicode = (char, offset) => String.fromCodePoint(char.charCodeAt(0) + offset);
+
 const baseFonts = [
-  { name:"Normal", map:"abcdefghijklmnopqrstuvwxyz" },
-  { name:"Bold", map:"𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳" },
-  { name:"Italic", map:"𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻" },
-  { name:"Script", map:"𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃" },
-  { name:"Double", map:"𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫" },
-  { name:"Mono", map:"𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣" },
-  { name:"Sans", map:"𝖺𝖻𝖼𝖽𝖾𝖿𝗀𝗁𝗂𝗃𝗄𝗅𝗆𝗇𝗈𝗉𝗊𝗋𝗌𝗍𝗎𝗏𝗐𝗑𝗒𝗓" },
-  { name:"Outline", map:"𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫" },
-  { name:"Circled", map:"ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ" },
-  { name:"Parenthesized", map:"⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵" },
-  { name:"Squared", map:"🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉" }
+  { 
+    name: "Bold Sans", 
+    map: (c) => {
+      if (c >= 'A' && c <= 'Z') return String.fromCodePoint(0x1D5D4 + (c.charCodeAt(0) - 65));
+      if (c >= 'a' && c <= 'z') return String.fromCodePoint(0x1D5EE + (c.charCodeAt(0) - 97));
+      return c;
+    }
+  },
+  { 
+    name: "Typewriter (Mono)", 
+    map: (c) => {
+      if (c >= 'A' && c <= 'Z') return String.fromCodePoint(0x1D670 + (c.charCodeAt(0) - 65));
+      if (c >= 'a' && c <= 'z') return String.fromCodePoint(0x1D68A + (c.charCodeAt(0) - 97));
+      return c;
+    }
+  },
+  { 
+    name: "Script Elegant", 
+    map: (c) => {
+      if (c >= 'A' && c <= 'Z') return String.fromCodePoint(0x1D49C + (c.charCodeAt(0) - 65));
+      if (c >= 'a' && c <= 'z') return String.fromCodePoint(0x1D4B6 + (c.charCodeAt(0) - 97));
+      return c;
+    }
+  },
+  { 
+    name: "Double Struck", 
+    map: (c) => {
+      if (c >= 'A' && c <= 'Z') return String.fromCodePoint(0x1D538 + (c.charCodeAt(0) - 65));
+      if (c >= 'a' && c <= 'z') return String.fromCodePoint(0x1D552 + (c.charCodeAt(0) - 97));
+      return c;
+    }
+  },
+  { 
+    name: "Squared Box", 
+    map: (c) => {
+      const upper = c.toUpperCase();
+      if (upper >= 'A' && upper <= 'Z') return String.fromCodePoint(0x1F130 + (upper.charCodeAt(0) - 65));
+      return c;
+    }
+  },
+  { 
+    name: "Circled", 
+    map: (c) => {
+      const upper = c.toUpperCase();
+      if (upper >= 'A' && upper <= 'Z') return String.fromCodePoint(0x24B6 + (upper.charCodeAt(0) - 65));
+      return c;
+    }
+  }
 ];
 
-// SAFE effects (no combining chars)
 const effects = [
-  { name:"", fn:t=>t },
-  { name:" Space", fn:t=>t.split('').join(' ') },
-  { name:" Dash", fn:t=>t.split('').join('-') },
-  { name:" Dot", fn:t=>t.split('').join('·') },
-  { name:" Box", fn:t=>`[ ${t.split('').join(' ')} ]` },
-  { name:" Reverse", fn:t=>t.split('').reverse().join('') },
-  { name:" Arrow", fn:t=>t.split('').join('→') },
-  { name:" Star", fn:t=>t.split('').join('★') },
-  { name:" Wave", fn:t=>`~${t}~` }
+  { name: "", fn: t => t },
+  { name: " (Wide)", fn: t => t.split('').join(' ') },
+  { name: " (Arrow)", fn: t => t.split('').join('→') },
+  { name: " (Decorated)", fn: t => `✧ ${t} ✧` },
+  { name: " (Mirror)", fn: t => t.split('').reverse().join('') }
 ];
 
-// AUTO GENERATE 100+ styles
-const fonts = [];
-baseFonts.forEach(b=>{
-  effects.forEach(e=>{
-    fonts.push({
-      name: b.name + e.name,
-      fn: t => e.fn(
-        t.replace(/[a-z]/gi, c =>
-          b.map["abcdefghijklmnopqrstuvwxyz".indexOf(c.toLowerCase())] || c
-        )
-      )
+// Gabungkan Font dan Efek
+const allStyles = [];
+baseFonts.forEach(font => {
+    effects.forEach(effect => {
+        allStyles.push({
+            label: font.name + effect.name,
+            apply: (text) => {
+                let transformed = text.split('').map(font.map).join('');
+                return effect.fn(transformed);
+            }
+        });
     });
-  });
 });
 
-function render(){
-  result.innerHTML="";
-  const keyword = search.value.toLowerCase();
+function render() {
+  const text = input.value || "Contoh Teks";
+  const query = search.value.toLowerCase();
+  result.innerHTML = "";
 
-  fonts.filter(f=>f.name.toLowerCase().includes(keyword))
-    .forEach(f=>{
-      const styled = f.fn(input.value);
-      const div = document.createElement("div");
-      div.className="p-3 rounded bg-gray-100 dark:bg-gray-800 cursor-pointer hover:bg-primary hover:text-white";
-      div.innerHTML=`<strong>${f.name}</strong><br>${styled}`;
-      div.onclick=()=>navigator.clipboard.writeText(styled);
-      result.appendChild(div);
-    });
+  const filtered = allStyles.filter(s => s.label.toLowerCase().includes(query));
+
+  filtered.forEach(style => {
+    const styledText = style.apply(text);
+    const div = document.createElement("div");
+    div.className = "style-card p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-primary hover:bg-white dark:hover:bg-gray-800 cursor-pointer group shadow-sm";
+    
+    div.innerHTML = `
+      <div class="flex justify-between items-start">
+        <span class="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-2 block">${style.label}</span>
+        <i data-feather="copy" class="w-3 h-3 text-gray-300 group-hover:text-primary opacity-0 group-hover:opacity-100 transition"></i>
+      </div>
+      <div class="text-xl break-words leading-relaxed">${styledText}</div>
+    `;
+
+    div.onclick = () => {
+      navigator.clipboard.writeText(styledText);
+      showToast("Berhasil disalin!");
+    };
+    
+    result.appendChild(div);
+  });
+  feather.replace(); // Refresh icons for new elements
 }
 
-input.addEventListener("input",render);
-search.addEventListener("input",render);
+function showToast(msg) {
+    const toast = document.createElement("div");
+    toast.className = "fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-2xl z-50 animate-bounce";
+    toast.innerText = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.5s';
+        setTimeout(() => toast.remove(), 500);
+    }, 1500);
+}
 
-copyAll.onclick=()=>{
-  let all=[...result.children].map(d=>d.innerText).join("\n\n");
+// Event Listeners
+input.addEventListener("input", render);
+search.addEventListener("input", render);
+
+copyAll.onclick = () => {
+  const all = [...result.querySelectorAll('.text-xl')].map(el => el.innerText).join("\n\n");
   navigator.clipboard.writeText(all);
+  showToast("Semua gaya disalin!");
 };
 
-toggleDark.onclick=()=>{
+toggleDark.onclick = () => {
   document.documentElement.classList.toggle("dark");
+  toggleDark.innerText = document.documentElement.classList.contains("dark") ? "☀️" : "🌙";
 };
+
+// Start
+render();
 </script>
 </body>
 </html>
