@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fancy Font Fiesta – FIX FULL PRO</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/feather-icons"></script>
+
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: '#6366f1',
+        secondary: '#0ea5e9'
+      }
+    }
+  }
+}
+</script>
+</head>
+
+<body class="bg-gradient-to-br from-primary to-secondary min-h-screen p-5">
+<div class="max-w-md mx-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-2xl shadow-xl overflow-hidden">
+
+<div class="p-5 space-y-4">
+  <div class="flex justify-between items-center">
+    <h1 class="text-xl font-bold flex items-center gap-2">
+      <i data-feather="type"></i> Fancy Font Fiesta PRO
+    </h1>
+    <button id="toggleDark" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">🌙</button>
+  </div>
+
+  <textarea id="input" rows="3"
+    class="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-800 focus:ring-2 focus:ring-primary outline-none"
+    placeholder="Type your text here..."></textarea>
+
+  <input id="search" placeholder="🔍 Search style..."
+    class="w-full p-2 rounded bg-gray-100 dark:bg-gray-800 outline-none">
+
+  <button id="copyAll"
+    class="w-full bg-primary text-white p-2 rounded-lg hover:opacity-90 transition">
+    📋 Copy All Styles
+  </button>
+
+  <div id="result" class="space-y-2 max-h-96 overflow-y-auto"></div>
+</div>
+
+</div>
+
+<script>
+feather.replace();
+
+const input = document.getElementById("input");
+const result = document.getElementById("result");
+const search = document.getElementById("search");
+const copyAll = document.getElementById("copyAll");
+const toggleDark = document.getElementById("toggleDark");
+
+// SAFE base fonts (no combining chars)
+const baseFonts = [
+  { name:"Normal", map:"abcdefghijklmnopqrstuvwxyz" },
+  { name:"Bold", map:"𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳" },
+  { name:"Italic", map:"𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻" },
+  { name:"Script", map:"𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃" },
+  { name:"Double", map:"𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫" },
+  { name:"Mono", map:"𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣" },
+  { name:"Sans", map:"𝖺𝖻𝖼𝖽𝖾𝖿𝗀𝗁𝗂𝗃𝗄𝗅𝗆𝗇𝗈𝗉𝗊𝗋𝗌𝗍𝗎𝗏𝗐𝗑𝗒𝗓" },
+  { name:"Outline", map:"𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫" },
+  { name:"Circled", map:"ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ" },
+  { name:"Parenthesized", map:"⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵" },
+  { name:"Squared", map:"🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉" }
+];
+
+// SAFE effects (no combining chars)
+const effects = [
+  { name:"", fn:t=>t },
+  { name:" Space", fn:t=>t.split('').join(' ') },
+  { name:" Dash", fn:t=>t.split('').join('-') },
+  { name:" Dot", fn:t=>t.split('').join('·') },
+  { name:" Box", fn:t=>`[ ${t.split('').join(' ')} ]` },
+  { name:" Reverse", fn:t=>t.split('').reverse().join('') },
+  { name:" Arrow", fn:t=>t.split('').join('→') },
+  { name:" Star", fn:t=>t.split('').join('★') },
+  { name:" Wave", fn:t=>`~${t}~` }
+];
+
+// AUTO GENERATE 100+ styles
+const fonts = [];
+baseFonts.forEach(b=>{
+  effects.forEach(e=>{
+    fonts.push({
+      name: b.name + e.name,
+      fn: t => e.fn(
+        t.replace(/[a-z]/gi, c =>
+          b.map["abcdefghijklmnopqrstuvwxyz".indexOf(c.toLowerCase())] || c
+        )
+      )
+    });
+  });
+});
+
+function render(){
+  result.innerHTML="";
+  const keyword = search.value.toLowerCase();
+
+  fonts.filter(f=>f.name.toLowerCase().includes(keyword))
+    .forEach(f=>{
+      const styled = f.fn(input.value);
+      const div = document.createElement("div");
+      div.className="p-3 rounded bg-gray-100 dark:bg-gray-800 cursor-pointer hover:bg-primary hover:text-white";
+      div.innerHTML=`<strong>${f.name}</strong><br>${styled}`;
+      div.onclick=()=>navigator.clipboard.writeText(styled);
+      result.appendChild(div);
+    });
+}
+
+input.addEventListener("input",render);
+search.addEventListener("input",render);
+
+copyAll.onclick=()=>{
+  let all=[...result.children].map(d=>d.innerText).join("\n\n");
+  navigator.clipboard.writeText(all);
+};
+
+toggleDark.onclick=()=>{
+  document.documentElement.classList.toggle("dark");
+};
+</script>
+</body>
+</html>
